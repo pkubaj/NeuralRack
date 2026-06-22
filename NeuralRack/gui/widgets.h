@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#define CONTROLS 30
+#define CONTROLS 31
 
 #define GUI_ELEMENTS 5
 

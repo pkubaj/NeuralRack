@@ -59,6 +59,7 @@ private:
 public:
     std::string                     modelFile;
     float                           nGain;
+    float                           qualityScaleFactor;
     int                             phaseOffset;
 
     void setModelFile(std::string modelFile_);
@@ -66,6 +67,7 @@ public:
     int getPhaseOffset() ;
     void clearState() ;
     void setMaxBufferSize(int maxSize) ;
+    void setQualityScaleFactor(float factor) ;
     void init(unsigned int sample_rate) ;
     void connect(uint32_t port,void* data) ;
     void normalize(uint32_t count, float *buf) ;

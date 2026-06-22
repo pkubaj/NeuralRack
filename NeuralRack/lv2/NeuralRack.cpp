@@ -76,6 +76,7 @@ private:
     float*                       _IrMode;
     float*                       _IrMix;
     float*                       _MasterOutGain;
+    float*                       _qualityScaleFactor;
     uint32_t                     s_rate;
     double                       s_time;
     int                          processCounter;
@@ -179,7 +180,8 @@ Xneuralrack::Xneuralrack() :
     _ngOnOff(0),
     _IrMode(0),
     _IrMix(0),
-    _MasterOutGain(0) {
+    _MasterOutGain(0),
+    _qualityScaleFactor(0) {
         map = nullptr;
         schedule = nullptr;
         control = nullptr;
@@ -319,6 +321,9 @@ void Xneuralrack::connect_(uint32_t port,void* data)
             break;
         case 35:
             _MasterOutGain = static_cast<float*>(data);
+            break;
+        case 36:
+            _qualityScaleFactor = static_cast<float*>(data);
             break;
         default:
             break;
@@ -481,6 +486,11 @@ inline void Xneuralrack::check_messages(uint32_t n_samples)
     engine.ngate->threshold = *_threshold;
     engine.IRmix = *_IrMix;
     engine.MasterOutGain = *_MasterOutGain;
+    if (_qualityScaleFactor && engine.qualityScaleFactor != *_qualityScaleFactor) {
+        engine.qualityScaleFactor = *_qualityScaleFactor;
+        engine._qualityChanged.store(true, std::memory_order_release);
+        if (!doit) doit = true;
+    }
 
     // check if a model or IR file is to be removed
     if ((*_eraseSlotA)) {

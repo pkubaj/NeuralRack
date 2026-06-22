@@ -252,12 +252,13 @@ void draw_elem(void *w_, void* user_data) {
     cairo_move_to (w->crb, (w->scale.init_width*0.18)-tw, 34 * w->app->hdpi);
     cairo_show_text(w->crb, w->label);
 
+    int box_w = 340;
     cairo_set_source_rgba(w->crb, 0.1, 0.1, 0.1, 1);
     round_rectangle(w->crb, 20 * w->app->hdpi, 44 * w->app->hdpi,
-                                            400 * w->app->hdpi, 30 * w->app->hdpi, 0.25);
+                                            box_w * w->app->hdpi, 30 * w->app->hdpi, 0.25);
     cairo_fill_preserve (w->crb);
     boxShadowInset(w->crb,20 * w->app->hdpi,44 * w->app->hdpi,
-                                            400 * w->app->hdpi, 30 * w->app->hdpi, true);
+                                            box_w * w->app->hdpi, 30 * w->app->hdpi, true);
     cairo_fill (w->crb);
 
     use_text_color_scheme(w, NORMAL_);
@@ -272,7 +273,7 @@ void draw_elem(void *w_, void* user_data) {
         cairo_text_extents_t extents_f;
         cairo_set_font_size (w->crb, w->app->big_font-3);
         int slen = strlen(basename(m.filename));
-        
+
         if (slen > 38) {
             utf8crop_middle(label,basename(m.filename), 38);
             tooltip_set_text(m.filebutton,basename(m.filename));
@@ -285,7 +286,10 @@ void draw_elem(void *w_, void* user_data) {
 
         cairo_text_extents(w->crb, label, &extents_f);
         double twf = extents_f.width/2.0;
-        cairo_move_to (w->crb, max(80 * w->app->hdpi,(w->scale.init_width*0.38)-twf), 64 * w->app->hdpi );
+        double text_center = (w->data == 2)
+            ? (20 + box_w * 0.5) * w->app->hdpi
+            : w->scale.init_width * 0.38;
+        cairo_move_to (w->crb, max(80 * w->app->hdpi, text_center - twf), 64 * w->app->hdpi );
         cairo_show_text(w->crb, label);
     }
  

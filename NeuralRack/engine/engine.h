@@ -112,6 +112,7 @@ public:
     float                        MasterOutGain;
     float                        IRmix;
     float                        buffered;
+    float                        qualityScaleFactor;
     float                        latency;
     float                        XrunCounter;
 
@@ -141,6 +142,7 @@ public:
     std::atomic<bool>            _neuralB;
     std::atomic<bool>            _neuralC;
     std::atomic<bool>            _neuralD;
+    std::atomic<bool>            _qualityChanged;
     std::atomic<bool>            bufferIsInit;
     std::atomic<int>             _ab;
     std::atomic<int>             _cd;
@@ -229,6 +231,7 @@ inline Engine::Engine() :
         MasterOutGain = 0.0;
         IRmix = 0.0;
         buffered = 0.0;
+        qualityScaleFactor = 1.0f;
         latency = 0.0;
         XrunCounter = 0.0;
         phasecor_ = 0.0;
@@ -246,6 +249,7 @@ inline Engine::Engine() :
         _neuralB.store(false, std::memory_order_release);
         _neuralC.store(false, std::memory_order_release);
         _neuralD.store(false, std::memory_order_release);
+        _qualityChanged.store(false, std::memory_order_release);
         _eqPos.store(1, std::memory_order_release);
 };
 
@@ -392,6 +396,11 @@ inline void Engine::setIRFile(ConvolverSelector *co, std::string *file) {
 }
 
 void Engine::do_work_mono() {
+    // apply quality scale factor change to slot B (not RT-safe, must run in worker)
+    if (_qualityChanged.load(std::memory_order_acquire)) {
+        slotB.setQualityScaleFactor(qualityScaleFactor);
+        _qualityChanged.store(false, std::memory_order_release);
+    }
     // set neural models
     if (_ab.load(std::memory_order_acquire) == 1) {
         setModel(&slotA, &model_file, &_neuralA);

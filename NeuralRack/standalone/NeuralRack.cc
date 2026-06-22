@@ -331,6 +331,11 @@ public:
             case 35:
                 engine.MasterOutGain = value;
             break;
+            case 36:
+                engine.qualityScaleFactor = value;
+                engine._qualityChanged.store(true, std::memory_order_release);
+                workToDo.store(true, std::memory_order_release);
+            break;
             default:
             break;
         }

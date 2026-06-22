@@ -88,6 +88,8 @@ public:
         param.registerParam("IR Mode",        "IR",     0,1,0,1,     (void*)&engine.IRmode,         true,  IS_UINT);
         param.registerParam("IR Mix",         "IR",     0,1,0.5,0.01,(void*)&engine.IRmix,          false, Is_FLOAT);
         param.registerParam("Master",         "IR",    -20,20,0,0.1, (void*)&engine.MasterOutGain,  false, Is_FLOAT);
+
+        param.registerParam("Quality B",      "Amp",    0,1,1,0.01,  (void*)&engine.qualityScaleFactor, false, Is_FLOAT);
     }
 
     void startGui(Window window) {
@@ -287,6 +289,7 @@ public:
         adj_set_value(ui->widget[27]->adj, static_cast<float>(engine.IRmode));
         adj_set_value(ui->widget[28]->adj, engine.IRmix);
         adj_set_value(ui->widget[29]->adj, engine.MasterOutGain);
+        adj_set_value(ui->widget[30]->adj, engine.qualityScaleFactor);
         setEQPos(engine.eqPos);
     }
 
@@ -433,6 +436,12 @@ public:
                 engine.MasterOutGain = value;
                 param.setParamDirty(21 , true);
             break;
+            case 36:
+                engine.qualityScaleFactor = value;
+                engine._qualityChanged.store(true, std::memory_order_release);
+                workToDo.store(true, std::memory_order_release);
+                param.setParamDirty(22 , true);
+            break;
             default:
             break;
         }
@@ -561,6 +570,12 @@ public:
                 engine.IRmix = check_stod(value);
                 buf >> value;
                 engine.MasterOutGain = check_stod(value);
+                // break here in case an old preset is in use
+                if(buf.peek() == decltype(buf)::traits_type::eof()) continue;
+                buf >> value;
+                if (value.compare("|") == 0) continue;
+                engine.qualityScaleFactor = check_stod(value);
+                engine._qualityChanged.store(true, std::memory_order_release);
             } else if (key.compare("[Model]") == 0) {
                 engine.model_file = remove_sub(line, "[Model] ");
                 engine._ab.fetch_add(1, std::memory_order_relaxed);
@@ -617,6 +632,7 @@ public:
         buffer << engine.IRmode << " ";
         buffer << engine.IRmix << " ";
         buffer << engine.MasterOutGain << " ";
+        buffer << engine.qualityScaleFactor << " ";
         buffer << "|";
         buffer << "[Model] " << engine.model_file << "|";
         buffer << "[Model1] " << engine.model_file1 << "|";

@@ -17,6 +17,7 @@ NeuralModelLoader::NeuralModelLoader(std::condition_variable *Sync)
     audioLoader.SetDefaultMaxAudioBufferSize(4096);
     loudness = 0.0;
     nGain = 1.0;
+    qualityScaleFactor = 1.0f;
     needResample = 0;
     phaseOffset = 0;
     isInited = false;
@@ -36,6 +37,14 @@ void NeuralModelLoader::clearState() {
 void NeuralModelLoader::setMaxBufferSize(int maxSize) {
     audioLoader.SetDefaultMaxAudioBufferSize(maxSize);
     if (model) model->SetMaxAudioBufferSize(maxSize);
+}
+
+// Must be called from non-RT thread: SetQualityScaleFactor is not realtime safe
+void NeuralModelLoader::setQualityScaleFactor(float factor) {
+    qualityScaleFactor = factor;
+    if (model && model->HasQualityScaling()) {
+        model->SetQualityScaleFactor(factor);
+    }
 }
 
 void NeuralModelLoader::init(unsigned int sample_rate) {
@@ -201,6 +210,9 @@ bool NeuralModelLoader::loadModel() {
                 toModel.setup(1, 8196, fSampleRate, modelSampleRate);
                 toStream.setup(1, 8196, modelSampleRate, fSampleRate);
                 needResample = 1;
+            }
+            if (model->HasQualityScaling()) {
+                model->SetQualityScaleFactor(qualityScaleFactor);
             }
             model->Prewarm();
             //fprintf(stderr, "phaseOffset = %i\n", phaseOffset);
