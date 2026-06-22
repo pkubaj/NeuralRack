@@ -171,11 +171,19 @@ endif
 
 	NEURALAUDIO_DIR := ../NeuralAudio/NeuralAudio/
 	NEURALAUDIO_DEP_DIR := ../NeuralAudio/deps/
+	NAMCORE_DIR := $(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/NAM/
+	NAMCORE_SOURCES := $(NAMCORE_DIR)activations.cpp $(NAMCORE_DIR)conv1d.cpp \
+	$(NAMCORE_DIR)get_dsp.cpp $(NAMCORE_DIR)ring_buffer.cpp $(NAMCORE_DIR)lstm.cpp \
+	$(NAMCORE_DIR)dsp.cpp $(NAMCORE_DIR)container.cpp \
+	$(NAMCORE_DIR)wavenet/slimmable.cpp $(NAMCORE_DIR)wavenet/model.cpp \
+	$(NAMCORE_DIR)wavenet/a2_fast.cpp
+	NAMCORE_OBJ := $(patsubst %.cpp,%.o,$(NAMCORE_SOURCES))
 	NEURALAUDIO_SOURCES := $(wildcard $(NEURALAUDIO_DIR)*.cpp)
 	NEURALAUDIO_SOURCES += $(wildcard $(NEURALAUDIO_DEP_DIR)RTNeural/RTNeural/*.cpp)
 	NEURALAUDIO_OBJ := $(patsubst %.cpp,%.o,$(NEURALAUDIO_SOURCES))
 	NEURALAUDIO_INCLUDES := -I$(NEURALAUDIO_DIR) -I$(NEURALAUDIO_DEP_DIR)RTNeural/ -I./ \
 	-I$(NEURALAUDIO_DEP_DIR)math_approx/include/ -I$(NEURALAUDIO_DEP_DIR) \
+	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/ \
 	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/Dependencies/nlohmann/ \
 	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/Dependencies/eigen
 	NEURALAUDIO_LIB := libneuralaudio.$(STATIC_LIB_EXT)
@@ -290,7 +298,8 @@ ifeq ($(TARGET), Linux)
 	-fomit-frame-pointer -fstack-protector -fvisibility=hidden -Wno-pessimizing-move \
 	-fdata-sections -I. -I./ -I./zita-resampler-1.1.0 -I$(CONV_DIR) -DNDEBUG \
 	-DRTNEURAL_DEFAULT_ALIGNMENT=32 -DRTNEURAL_USE_EIGEN=1 -DRTNEURAL_NAMESPACE=RTNeural \
-	-DDSP_SAMPLE_FLOAT -DNAM_SAMPLE_FLOAT -Dneural_amp_modeler_EXPORTS
+	-DDSP_SAMPLE_FLOAT -DNAM_SAMPLE_FLOAT -Dneural_amp_modeler_EXPORTS \
+	-DBUILD_NAMCORE -DNAM_ENABLE_A2_FAST
 
 	ifneq ($(UNAME_S), FreeBSD)
 	ifeq (,$(findstring clang, $(CXX)))
@@ -399,11 +408,15 @@ clap: $(NAME).clap
 
 $(NEURALAUDIO_OBJ): $(NEURALAUDIO_SOURCES)
 	@$(ECHO) "Building object file $@ $(reset)"
-	$(QUIET)$(CXX) $(CXXFLAGS) -DWAVENET_FRAMES=128 -MMD -Wall -Wno-unused-private-field -Wno-reorder-ctor -Wno-infinite-recursion -c $(patsubst %.o,%.cpp,$@) -o $@ $(NEURALAUDIO_INCLUDES)
+	$(QUIET)$(CXX) $(CXXFLAGS) -DWAVENET_FRAMES=128 -DBUILD_NAMCORE -DNAM_ENABLE_A2_FAST -MMD -Wall -Wno-unused-private-field -Wno-reorder-ctor -Wno-infinite-recursion -c $(patsubst %.o,%.cpp,$@) -o $@ $(NEURALAUDIO_INCLUDES)
 
-$(NEURALAUDIO_LIB): $(NEURALAUDIO_OBJ)
+$(NAMCORE_OBJ): $(NAMCORE_SOURCES)
+	@$(ECHO) "Building object file $@ $(reset)"
+	$(QUIET)$(CXX) $(filter-out -flto%,$(CXXFLAGS)) -fno-lto -DWAVENET_FRAMES=128 -DBUILD_NAMCORE -DNAM_ENABLE_A2_FAST -MMD -Wall -Wno-unused-private-field -Wno-reorder-ctor -Wno-infinite-recursion -c $(patsubst %.o,%.cpp,$@) -o $@ $(NEURALAUDIO_INCLUDES)
+
+$(NEURALAUDIO_LIB): $(NEURALAUDIO_OBJ) $(NAMCORE_OBJ)
 	@$(B_ECHO) "Build static library $@ $(reset)"
-	$(QUIET)$(AR) rcs $(NEURALAUDIO_LIB) $(NEURALAUDIO_OBJ)
+	$(QUIET)$(AR) rcs $(NEURALAUDIO_LIB) $(NEURALAUDIO_OBJ) $(NAMCORE_OBJ)
 	@$(B_ECHO) "=================== DONE =======================$(reset)"
 
 $(CONV_OBJ): $(CONV_SOURCES)
@@ -448,7 +461,7 @@ endif
 $(EXEC_NAME).$(LIB_EXT): $(LV2_PLUGIN).cpp $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
 	@$(B_ECHO) "Compiling $(EXEC_NAME).$(LIB_EXT) $(reset)"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) $(MODEL_LOADER) $(LV2_INCLUDE) $(LV2_PLUGIN).cpp  \
-	-L. $(NEURALAUDIO_LIB) -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(LDFLAGS) -o $(EXEC_NAME).$(LIB_EXT)
+	-Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(LDFLAGS) -o $(EXEC_NAME).$(LIB_EXT)
 ifeq (,$(filter yes,$(DEBUG)))
 	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(EXEC_NAME).$(LIB_EXT)
 endif
@@ -458,7 +471,7 @@ ifneq ($(JACKFLAGS), )
 	@$(B_ECHO) "Compiling $@ $(reset)"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) \
 	$(STANDALONE_INCLUDE) $(JACKFLAGS) $(MODEL_LOADER) $(STANDALONE).cpp -L. $(UI_LIB) \
-	-L. $(NEURALAUDIO_LIB) -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(JACKLDFLAGS) -o $@
+	-Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(JACKLDFLAGS) -o $@
 ifeq (,$(filter yes,$(DEBUG)))
 	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(EXEC_NAME)$(EXE_EXT)
 endif
@@ -467,7 +480,7 @@ endif
 $(NAME)vst.$(LIB_EXT): $(VST2_SOURCES) $(CLAP_DIR)$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
 	@$(B_ECHO) "Compiling $(NAME)vst.$(LIB_EXT) $(reset)"
 	$(QUIET)$(CXX) $(CXXFLAGS) -Wno-multichar $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) $(MODEL_LOADER) $(VST2_INCLUDE) $(VST2_SOURCES)  \
-	-L. $(NEURALAUDIO_LIB) -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(NAME)vst.$(LIB_EXT)
+	-Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(NAME)vst.$(LIB_EXT)
 ifeq (,$(filter yes,$(DEBUG)))
 	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME)vst.$(LIB_EXT)
 endif
@@ -475,7 +488,7 @@ endif
 $(NAME).clap: $(CLAP_SOURCES) $(CLAP_DIR)$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
 	@$(B_ECHO) "Compiling $(NAME).clap $(reset)"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) $(MODEL_LOADER) $(CLAP_INCLUDE) $(CLAP_SOURCES)  \
-	-L. $(NEURALAUDIO_LIB) -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(NAME).clap
+	-Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(NAME).clap
 ifeq (,$(filter yes,$(DEBUG)))
 	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).clap
 endif
@@ -549,6 +562,8 @@ clean:
 	$(QUIET)rm -f $(NEURALAUDIO_DIR)*.a $(NEURALAUDIO_DIR)*.lib $(NEURALAUDIO_DIR)*.o $(NEURALAUDIO_DIR)*.d
 	$(QUIET)rm -f $(NEURALAUDIO_DEP_DIR)RTNeural/RTNeural/*.a $(NEURALAUDIO_DEP_DIR)RTNeural/RTNeural/*.lib \
 	$(NEURALAUDIO_DEP_DIR)RTNeural/RTNeural/*.o $(NEURALAUDIO_DEP_DIR)RTNeural/RTNeural/*.d
+	$(QUIET)rm -f $(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/NAM/*.o $(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/NAM/*.d \
+	$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/NAM/wavenet/*.o $(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/NAM/wavenet/*.d
 	$(QUIET)rm -f $(ENGINE_DIR)*.a $(ENGINE_DIR)*.lib $(ENGINE_DIR)*.o $(ENGINE_DIR)*.d
 	$(QUIET)rm -rf ../bin
 ifndef EXTRAQUIET

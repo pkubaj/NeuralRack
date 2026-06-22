@@ -176,8 +176,14 @@ bool NeuralModelLoader::loadModel() {
         phaseOffset = 0;
         //clearState();
         try {
+            //fprintf(stderr, "CreateFromFile\n");
             model = audioLoader.CreateFromFile(std::string(modelFile));
-        } catch (const std::exception&) {
+        } catch (const std::exception&e) {
+            //fprintf(stderr, "Error creating model from '%s': %s\n", modelFile.c_str(), e.what());
+            modelFile = "None";
+        }
+        catch (...) {
+            //fprintf(stderr, "Unknown error creating model from '%s'\n", modelFile.c_str());
             modelFile = "None";
         }
         
@@ -200,6 +206,9 @@ bool NeuralModelLoader::loadModel() {
             //fprintf(stderr, "phaseOffset = %i\n", phaseOffset);
             //fprintf(stderr, "sample rate = %i file = %i l = %f\n",fSampleRate, modelSampleRate, loudness);
             //fprintf(stderr, "%s\n", load_file.c_str());
+        }
+        else {
+            //fprintf(stderr, "no model file\n");
         }
         ramp = 0.0;
         ready.store(true, std::memory_order_release);
