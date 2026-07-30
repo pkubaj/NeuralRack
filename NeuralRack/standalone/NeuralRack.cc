@@ -84,6 +84,7 @@ public:
 
     void startGui() {
         main_init(&ui->main);
+        if (ui->main.hdpi > 1.6) ui->main.hdpi = 1.6;
         set_custom_theme(ui);
         int w = 1;
         int h = 1;

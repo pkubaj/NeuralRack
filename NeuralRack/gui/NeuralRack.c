@@ -141,6 +141,7 @@ static void resize_callback(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     X11_UI *ui = (X11_UI*) w->parent_struct;
     ui->g.startY = (130 * ui->main.hdpi) / w->scale.cscale_y;
+    vsg_reset(&ui->g);
 }
 
 void plugin_create_controller_widgets(X11_UI *ui, const char * plugin_uri) {
@@ -222,7 +223,7 @@ void plugin_create_controller_widgets(X11_UI *ui, const char * plugin_uri) {
     set_widget_color(ui->widget[25], (Color_state)1, (Color_mod)0, 0.335, 0.315, 0.382, 1.0);
 
 // slot A Pedal Profile
-    vsg_add(&ui->g, ui->elem[0] = create_widget(&ui->main, ui->win, 10, 60, 600, 110));
+    vsg_add(&ui->g, ui->elem[0] = create_widget(&ui->main, ui->win, 10, 130, 600, 110));
     ui->elem[0]->parent_struct = ui;
     ui->elem[0]->label = "Pedal Profile";
     ui->elem[0]->data = 1;
@@ -267,7 +268,7 @@ void plugin_create_controller_widgets(X11_UI *ui, const char * plugin_uri) {
     ui->widget[11] = add_lv2_erase_button (ui->widget[11], ui->elem[0], 15, "", ui, 390, 48, 25, 25);
 
 // EQ
-    vsg_add(&ui->g, ui->elem[3] = create_widget(&ui->main, ui->win, 10, 60, 600, 110));
+    vsg_add(&ui->g, ui->elem[3] = create_widget(&ui->main, ui->win, 10, 240, 600, 110));
     ui->elem[3]->parent_struct = ui;
     ui->elem[3]->label = "6 Band EQ";
     setFrameCallbacks(ui->elem[3]);
@@ -336,7 +337,7 @@ void plugin_create_controller_widgets(X11_UI *ui, const char * plugin_uri) {
     set_widget_color(ui->widget[23], (Color_state)1, (Color_mod)0, 0.694, 0.714, 0.737, 1.0);
 
 // sloat B Amp Profile
-    vsg_add(&ui->g, ui->elem[1] = create_widget(&ui->main, ui->win, 10, 60, 600, 110));
+    vsg_add(&ui->g, ui->elem[1] = create_widget(&ui->main, ui->win, 10, 350, 600, 110));
     ui->elem[1]->parent_struct = ui;
     ui->elem[1]->label = "Amp Profile";
     ui->elem[1]->data = 2;

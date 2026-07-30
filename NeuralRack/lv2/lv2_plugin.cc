@@ -307,6 +307,7 @@ static LV2UI_Handle instantiate(const LV2UI_Descriptor * descriptor,
     lv2_atom_forge_init(&ui->itf.forge, ui->itf.map);
     // init Xputty
     main_init(&ui->main);
+    if (ui->main.hdpi > 1.6) ui->main.hdpi = 1.6;
     set_custom_theme(ui);
 
     float scale = 1.0;

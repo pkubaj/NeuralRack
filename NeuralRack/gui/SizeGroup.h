@@ -146,10 +146,21 @@ static inline void vsg_relayout(VerticalSizeGroup* g) {
             os_move_window(dpy,w,w->scale.init_x,ty);
         }
 
-        w->scale.init_y = ty * w->scale.cscale_y;
+        w->scale.init_y = (int)((float)ty * w->scale.cscale_y);
         y += w->height + g->spacingY;
+        //fprintf(stderr, "i %i g->startY %i ty %i w->scale.init_y %i y %i w->scale.cscale_y %f w->app->hdpi %f\n", i, g->startY, ty, w->scale.init_y, y, w->scale.cscale_y, w->app->hdpi);
     }
     g->animationInit = 0;
+}
+
+// force all entries to snap to their correct position from the current
+// startY/height/cscale_y state — no animation, no stale decode
+static inline void vsg_reset(VerticalSizeGroup* g) {
+    int savedAnimate = g->animateOnAdd;
+    g->animateOnAdd = 0;
+    g->animationInit = 0;
+    vsg_relayout(g);
+    g->animateOnAdd = savedAnimate;
 }
 
 // add element to the size-group 
