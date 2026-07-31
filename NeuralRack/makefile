@@ -12,11 +12,13 @@
 	EXE_INSTALL_DIR = /usr/bin
 	CLAP_INSTAL_DIR = /usr/lib/clap
 	VST2_INSTAL_DIR = /usr/lib/vst
+	VST3_INSTALL_DIR = /usr/lib/vst3
 	else 
 	INSTALL_DIR = ~/.lv2
-	EXE_INSTALL_DIR = ~/bin
+	#EXE_INSTALL_DIR = ~/bin
 	CLAP_INSTAL_DIR = ~/.clap
 	VST2_INSTAL_DIR = ~/.vst
+	VST3_INSTALL_DIR = ~/.vst3
 	endif
 
 
@@ -158,6 +160,7 @@ endif
 	space := $(subst ,, )
 	EXEC_NAME := Neuralrack
 	VEXEC_NAME := NeuralRack
+	VST3_NAME := NeuralRackVST3
 	BUNDLE = $(EXEC_NAME).lv2
 	LIB_DIR := ../libxputty/libxputty/
 	HEADER_DIR := $(LIB_DIR)include/
@@ -199,13 +202,21 @@ endif
 	STANDALONE := $(STANDALONE_DIR)main
 	STANDALONE_UI_SOURCES := $(GUI_DIR)widgets.cc $(GUI_DIR)NeuralRack.c
 
+	WRAPPER_DIR := ./wrapper/
+
 	CLAP_DIR := ./clap/
-	CLAP_INCLUDE := -I./engine/ -I./clap/clap/ -I./clap/
+	CLAP_INCLUDE := -I./engine/ -I./wrapper/clap/clap/ -I./clap/ -I./wrapper/ -I./wrapper/clap/ -I./plugdef/
 	CLAP_SOURCES := $(CLAP_DIR)NeuralRackClap.cpp
 
 	VST2_DIR := ./vst2/
-	VST2_INCLUDE := -I./engine/ -I./clap/ -I./vst2/
+	VST2_INCLUDE := -I./engine/ -I./wrapper/ -I./wrapper/vst2/ -I./vst2/ -I./plugdef/
 	VST2_SOURCES := $(VST2_DIR)NeuralRackvst.cpp
+
+	VST3_DIR := ./vst3/
+	VST3_INCLUDE := -I./engine/ -I./vst3/ -I./wrapper/vst3/travesty/ -I./wrapper/ -I./wrapper/vst3/ -I./plugdef/
+	VST3_SOURCES := $(VST3_DIR)NeuralRackVST3.cpp
+	ARCH = `echo $(UNAME_S) | tr A-Z a-z`
+	VST3_BUNDLE := $(VST3_NAME).vst3/Contents/$(UNAME_M)-$(ARCH)/
 
 	LV2_PLUGIN := $(LV2_DIR)$(NAME)
 	LV2_GUI := $(GUI_DIR)$(NAME)
@@ -223,7 +234,7 @@ endif
 
 	GUIIMPL_SOURCE := $(LV2_DIR)lv2_plugin.cc $(GUI_DIR)widgets.cc
 
-	DEPS = $NEURAL_OBJ:%.o=%.d) $(CONV_OBJ:%.o=%.d) $(RESAMP_OBJ:%.o=%.d) Neuralrack.d NeuralRackvst.d
+	DEPS = $NEURAL_OBJ:%.o=%.d) $(CONV_OBJ:%.o=%.d) $(RESAMP_OBJ:%.o=%.d) Neuralrack.d NeuralRackvst.d NeuralRackVST3.d 
 
 ifeq (,$(filter clean,$(MAKECMDGOALS)))
 ifeq (,$(filter install,$(MAKECMDGOALS)))
@@ -233,6 +244,7 @@ ifeq (,$(filter modapp,$(MAKECMDGOALS)))
 ifeq (,$(filter lv2,$(MAKECMDGOALS)))
 ifeq (,$(filter clap,$(MAKECMDGOALS)))
 ifeq (,$(filter vst2,$(MAKECMDGOALS)))
+ifeq (,$(filter vst3,$(MAKECMDGOALS)))
 	INFOSTRING = with
 	HAVEJACK = $(shell $(PKGCONFIG) $(PKGCONFIG_FLAGS) --cflags  --libs jack 2>/dev/null)
 	ifneq ($(HAVEJACK), )
@@ -262,6 +274,7 @@ ifeq (,$(filter vst2,$(MAKECMDGOALS)))
     else
     $(info $(yellow) INFO: $(reset)Stand-alone   $(red)skipped - libjack-dev and portaudio19-dev missing$(reset))
 	endif
+endif
 endif
 endif
 endif
@@ -321,6 +334,8 @@ ifeq ($(TARGET), Linux)
 	-fdata-sections -Wl,--gc-sections -Wl,-z,relro,-z,now -Wl,--exclude-libs,ALL -DUSE_ATOM
 
 else ifeq ($(TARGET), Windows)
+	VST3_BUNDLE := $(VST3_NAME).vst3/Contents/$(UNAME_M)-win/
+
 	CXXFLAGS += -D_FORTIFY_SOURCE=2 -I. -fPIC -DPIC -Wall -funroll-loops \
 	-ffast-math -fomit-frame-pointer -fstrength-reduce -Wno-deprecated-declarations \
 	-Wno-maybe-uninitialized -Wno-uninitialized \
@@ -363,7 +378,7 @@ endif
 
 .NOTPARALLEL:
 
-all: lv2 standalone clap vst2
+all: lv2 standalone clap vst2 vst3
 
 debug: all
 
@@ -391,6 +406,17 @@ endif
 vst2: $(NAME)vst.$(LIB_EXT)
 	$(QUIET)mkdir -p ../bin/
 	$(QUIET)cp ./$(NAME)vst.$(LIB_EXT) ../bin/
+	@$(B_ECHO) "=================== DONE =======================$(reset)"
+
+vst3: $(VST3_NAME)
+	@$(B_ECHO) "Create $(VST3_BUNDLE) $(reset)"
+	$(QUIET)mkdir -p ../bin/
+	$(QUIET)mkdir -p ../bin/$(VST3_BUNDLE)
+ifeq ($(TARGET), Windows)
+	$(QUIET)cp ./$(VST3_NAME).$(LIB_EXT) ../bin/$(VST3_BUNDLE)/$(VST3_NAME).vst3
+else
+	$(QUIET)cp ./$(VST3_NAME).$(LIB_EXT) ../bin/$(VST3_BUNDLE)
+endif
 	@$(B_ECHO) "=================== DONE =======================$(reset)"
 
 clap: $(NAME).clap
@@ -467,7 +493,7 @@ ifeq (,$(filter yes,$(DEBUG)))
 endif
 endif
 
-$(NAME)vst.$(LIB_EXT): $(VST2_SOURCES) $(CLAP_DIR)$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
+$(NAME)vst.$(LIB_EXT): $(VST2_SOURCES) ./plugdef/$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
 	@$(B_ECHO) "Compiling $(NAME)vst.$(LIB_EXT) $(reset)"
 	$(QUIET)$(CXX) $(CXXFLAGS) -Wno-multichar $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) $(MODEL_LOADER) $(VST2_INCLUDE) $(VST2_SOURCES)  \
 	-L. -Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(NAME)vst.$(LIB_EXT)
@@ -475,7 +501,15 @@ ifeq (,$(filter yes,$(DEBUG)))
 	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME)vst.$(LIB_EXT)
 endif
 
-$(NAME).clap: $(CLAP_SOURCES) $(CLAP_DIR)$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
+$(VST3_NAME): $(VST3_SOURCES) ./plugdef/$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
+	@$(B_ECHO) "Compiling $(VST3_NAME).$(LIB_EXT) $(reset)"
+	$(QUIET)$(CXX) $(CXXFLAGS) -Wno-multichar $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) $(MODEL_LOADER) $(VST3_INCLUDE) $(VST3_SOURCES)  \
+	-L. -Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(VST3_NAME).$(LIB_EXT)
+ifeq (,$(filter yes,$(DEBUG)))
+	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(VST3_NAME).$(LIB_EXT)
+endif
+
+$(NAME).clap: $(CLAP_SOURCES) ./plugdef/$(NAME).cc $(NEURALAUDIO_LIB) $(CONV_LIB) $(RESAMP_LIB) $(MODEL_LOADER)
 	@$(B_ECHO) "Compiling $(NAME).clap $(reset)"
 	$(QUIET)$(CXX) $(CXXFLAGS) $(NEURALAUDIO_INCLUDES) $(ENGINE_INCLUDE) $(MODEL_LOADER) $(CLAP_INCLUDE) $(CLAP_SOURCES)  \
 	-L. -Wl,--whole-archive $(NEURALAUDIO_LIB) -Wl,--no-whole-archive -L. $(CONV_LIB) -L. $(RESAMP_LIB) $(GUI_LDFLAGS) $(LDFLAGS) -o $(NAME).clap
@@ -494,18 +528,17 @@ else
 	@$(B_ECHO) "$(BUNDLE) skipped$(reset)"
 endif
 ifneq ("$(wildcard ../bin/$(EXEC_NAME)$(EXE_EXT))","")
+  ifeq ($(user),root)
 	@$(B_ECHO) "Install  $(EXEC_NAME)$(EXE_EXT) to $(DESTDIR)$(EXE_INSTALL_DIR)/$(reset)"
 	$(QUIET)mkdir -p $(DESTDIR)$(EXE_INSTALL_DIR)/
 	$(QUIET)cp -r ../bin/$(EXEC_NAME)$(EXE_EXT) $(DESTDIR)$(EXE_INSTALL_DIR)/$(EXEC_NAME)$(EXE_EXT)
-
-  ifeq ($(user),root)
 	$(QUIET)mkdir -p $(DESTDIR)$(DESKAPPS_DIR)
 	$(QUIET)cp $(STANDALONE_DIR)$(NAME).desktop $(DESTDIR)$(DESKAPPS_DIR)$(NAME).desktop
 	$(QUIET)mkdir -p $(DESTDIR)$(PIXMAPS_DIR)
 	$(QUIET)cp $(STANDALONE_DIR)$(NAME).svg $(DESTDIR)$(PIXMAPS_DIR)$(NAME).svg 
 	$(QUIET)update-desktop-database || true
-  endif
 	@$(B_ECHO) ". ., done$(reset)"
+  endif
 else
 	@$(B_ECHO) "$(EXEC_NAME)$(EXE_EXT) standalone skipped$(reset)"
 endif
@@ -525,6 +558,14 @@ ifneq ("$(wildcard ../bin/$(NAME)vst.$(LIB_EXT))","")
 else
 	@$(B_ECHO) "$(NAME)vst.$(LIB_EXT) vst2 skipped$(reset)"
 endif
+ifneq ("$(wildcard ../bin/$(VST3_NAME).vst3)","")
+	@$(B_ECHO) "Install $(VST3_NAME).vst3 to $(DESTDIR)$(VST3_INSTALL_DIR)/$(reset)"
+	$(QUIET)mkdir -p $(DESTDIR)$(VST3_INSTALL_DIR)/$(VST3_NAME).vst3
+	$(QUIET)cp -r ../bin/$(VST3_NAME).vst3/* $(DESTDIR)$(VST3_INSTALL_DIR)/$(VST3_NAME).vst3
+	@$(B_ECHO) ". ., done$(reset)"
+else
+	@$(B_ECHO) "$(VST3_NAME).vst3 skipped$(reset)"
+endif
 
 else
 	$(QUIET)$(R_ECHO) "Install is not implemented for windows, please copy the folder $(NAME).lv2 to Program Files/Common Files/LV2$(reset)"
@@ -536,6 +577,7 @@ ifeq ($(TARGET), Linux)
 	$(QUIET)rm -rf $(INSTALL_DIR)/$(BUNDLE)
 	$(QUIET)rm -rf $(DESTDIR)$(EXE_INSTALL_DIR)/$(EXEC_NAME)
 	$(QUIET)rm -rf $(DESTDIR)$(CLAP_INSTAL_DIR)/$(NAME).clap
+	$(QUIET)rm -rf $(DESTDIR)$(VST3_INSTAL_DIR)/$(VST3_NAME).vst3
   ifeq ($(user),root)
 	$(QUIET)rm -rf $(DESTDIR)$(DESKAPPS_DIR)/$(EXEC_NAME).desktop
 	$(QUIET)rm -rf $(DESTDIR)$(PIXMAPS_DIR)/$(EXEC_NAME).svg

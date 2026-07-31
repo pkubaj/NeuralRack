@@ -1085,6 +1085,17 @@ Widget_t* add_lv2_slider(Widget_t *w, Widget_t *p, int index, const char * label
     return w;
 }
 
+Widget_t* add_lv2_vslider(Widget_t *w, Widget_t *p, int index, const char * label,
+                                X11_UI* ui, int x, int y, int width, int height) {
+    w = add_hslider(p, label, x, y, width, height);
+    w->scale.gravity = CENTER;
+    w->parent_struct = ui;
+    w->data = index;
+    w->func.expose_callback = draw_my_slider;
+    w->func.value_changed_callback = value_changed;
+    return w;
+}
+
 void draw_my_label(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     Metrics_t metrics;
@@ -1098,11 +1109,15 @@ void draw_my_label(void *w_, void* user_data) {
     cairo_text_extents_t extents;
     char s[64];
     float value = adj_get_value(w->adj);
-    if (w->data == 22) snprintf(s, 63,"Latency: %.2fms",  value);
-    else snprintf(s, 63,"Xruns: %.0f",  value);
     cairo_select_font_face (w->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
                                CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size (w->crb, w->app->small_font/w->scale.ascale);
+    if (w->data == 22) {
+        snprintf(s, 63,"Latency: %.2fms",  value);
+        cairo_set_font_size (w->crb, w->app->small_font/w->scale.ascale);
+    } else {
+        snprintf(s, 63,"Xruns: %.0f",  value);
+        cairo_set_font_size (w->crb, (w->app->small_font -2.0f)/w->scale.ascale);
+    }
     cairo_set_source_rgba(w->crb, 0.6, 0.6, 0.6, 1);
     cairo_text_extents(w->crb,"Latenco: 0.00ms" , &extents);
     cairo_move_to (w->crb, center-extents.width/2, height-(extents.height*0.4) );

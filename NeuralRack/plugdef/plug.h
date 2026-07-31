@@ -1,5 +1,5 @@
 /*
- * clapplug.h
+ * plug.h
  *
  * SPDX-License-Identifier:  BSD-3-Clause
  *
@@ -9,16 +9,12 @@
 
 #pragma once
 
-#ifndef CLAPPLUG_H_
-#define CLAPPLUG_H_
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
 struct Interface {
-    uint32_t clapplug;
+    uint32_t plug;
 };
 
 #include "widgets.h"
@@ -36,5 +32,3 @@ ends_with(const char* name, const char* extension) {
 #ifdef __cplusplus
 }
 #endif
-
-#endif //CLAPPLUG_H_

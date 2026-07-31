@@ -9,7 +9,7 @@
 #ifdef STANDALONE
 #include "standalone.h"
 #elif defined(CLAPPLUG)
-#include "clapplug.h"
+#include "plug.h"
 #else
 #include "lv2_plugin.cc"
 #endif
