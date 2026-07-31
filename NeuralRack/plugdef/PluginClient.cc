@@ -106,7 +106,8 @@ static PluginDescriptor buildDescriptor() {
     d.vst3SubCategories = "Fx|Distortion";
     d.vst3SdkVersion    = "VST 3.7.9";
 #elif defined (CLAPIPLUG)
-    d.clapFeature      = (const char *[]){ CLAP_PLUGIN_FEATURE_AUDIO_EFFECT , CLAP_PLUGIN_FEATURE_DISTORTION, NULL};
+    static const char *features[] = { CLAP_PLUGIN_FEATURE_AUDIO_EFFECT , CLAP_PLUGIN_FEATURE_DISTORTION, NULL};
+    d.clapFeature      = features;
 #endif
     d.version          = "0.4.0";
 
