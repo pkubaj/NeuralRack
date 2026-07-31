@@ -291,7 +291,7 @@ endif
 ifeq ($(TARGET), Linux)
 
 	GUI_LDFLAGS += -I$(HEADER_DIR) $(GUI_INCLUDE) -Wl,-Bstatic -L. $(UI_LIB) \
-	-Wl,-Bdynamic `pkg-config --cflags --libs cairo x11` 
+	-Wl,-Bdynamic `pkg-config --cflags --libs cairo x11` $(FT_LIBS)
 
 	LDFLAGS += -fvisibility=hidden -shared -lm -fPIC -pthread -lpthread \
 	-Wl,-z,noexecstack -Wl,--no-undefined -Wl,--gc-sections  -Wl,--exclude-libs,ALL \
@@ -352,7 +352,7 @@ else ifeq ($(TARGET), Windows)
 
 	GUI_LDFLAGS += -I$(HEADER_DIR) $(GUI_INCLUDE) -static-libgcc -static-libstdc++ \
 	`$(PKGCONFIG) $(PKGCONFIG_FLAGS) --cflags --libs cairo ` \
-	-L. $(LIB_DIR)libxputty.$(STATIC_LIB_EXT) -lm $(PAWPAW_LFLAGS)
+	-L. $(LIB_DIR)libxputty.$(STATIC_LIB_EXT) -lm $(PAWPAW_LFLAGS) $(FT_LIBS)
 
 	CFLAGS := -D_FORTIFY_SOURCE=2 -Wall -fstack-protector -fvisibility=hidden \
 	-fdata-sections -Wl,--gc-sections -Wl,--exclude-libs,ALL -DUSE_ATOM

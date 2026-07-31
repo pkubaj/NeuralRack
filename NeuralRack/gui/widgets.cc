@@ -203,7 +203,8 @@ void draw_eq_window(void *w_, void* user_data) {
     // base colour of the rack label
     shade_bg_color(w, 0.9);
     cairo_move_to (w->crb, (w->scale.init_width*0.18)-tw, 42 * w->app->hdpi);
-    cairo_show_text(w->crb, w->label);
+    cairo_text_path (w->crb, w->label);
+    cairo_fill (w->crb);
     widget_reset_scale(w);
 
     cairo_pop_group_to_source (w->crb);
@@ -250,7 +251,8 @@ void draw_elem(void *w_, void* user_data) {
     // base colour of the rack label
     shade_bg_color(w, 0.9);
     cairo_move_to (w->crb, (w->scale.init_width*0.18)-tw, 34 * w->app->hdpi);
-    cairo_show_text(w->crb, w->label);
+    cairo_text_path (w->crb, w->label);
+    cairo_fill (w->crb);
 
     cairo_set_source_rgba(w->crb, 0.1, 0.1, 0.1, 1);
     round_rectangle(w->crb, 20 * w->app->hdpi, 44 * w->app->hdpi,
@@ -286,7 +288,8 @@ void draw_elem(void *w_, void* user_data) {
         cairo_text_extents(w->crb, label, &extents_f);
         double twf = extents_f.width/2.0;
         cairo_move_to (w->crb, max(80 * w->app->hdpi,(w->scale.init_width*0.38)-twf), 64 * w->app->hdpi );
-        cairo_show_text(w->crb, label);
+        cairo_text_path (w->crb, label);
+        cairo_fill (w->crb);
     }
  
     widget_reset_scale(w);
@@ -358,7 +361,8 @@ void draw_ir_elem(void *w_, void* user_data) {
         cairo_text_extents(w->crb, label, &extents_f);
         double twf = extents_f.width/2.0;
         cairo_move_to (w->crb, max(180 * w->app->hdpi,(w->scale.init_width*0.54)-twf), 40 * w->app->hdpi );
-        cairo_show_text(w->crb, label);
+        cairo_text_path (w->crb, label);
+        cairo_fill (w->crb);
     }
     if (strlen(ps->ir1.filename)) {
         char label[124];
@@ -380,7 +384,8 @@ void draw_ir_elem(void *w_, void* user_data) {
         cairo_text_extents(w->crb, label, &extents_f);
         double twf = extents_f.width/2.0;
         cairo_move_to (w->crb, max(180 * w->app->hdpi,(w->scale.init_width*0.54)-twf), 84 * w->app->hdpi );
-        cairo_show_text(w->crb, label);
+        cairo_text_path (w->crb, label);
+        cairo_fill (w->crb);
     }
  
     widget_reset_scale(w);
@@ -425,7 +430,8 @@ static void draw_window(void *w_, void* user_data) {
     // base colour of the main label
     cairo_set_source_rgba(w->crb, 0.6, 0.6, 0.6, 1);
     cairo_move_to (w->crb, (w->scale.init_width*0.5)-tw, 42 * w->app->hdpi);
-    cairo_show_text(w->crb, w->label);
+    cairo_text_path (w->crb, w->label);
+    cairo_fill (w->crb);
 
     cairo_move_to (w->crb, 10 * w->app->hdpi, 54 * w->app->hdpi);
     cairo_line_to (w->crb, 600 * w->app->hdpi, 54 * w->app->hdpi);
@@ -637,7 +643,8 @@ static void draw_my_knob(void *w_, void* user_data) {
             int wx = extents.width * 0.5;
             cairo_text_extents(w->crb, s, &extents);
             cairo_move_to (w->crb, knobx1 - wx - o, knoby1+extents.height/2);
-            cairo_show_text(w->crb, s);
+            cairo_text_path (w->crb, s);
+            cairo_fill (w->crb);
             cairo_new_path (w->crb);
         }
     }
@@ -649,7 +656,8 @@ static void draw_my_knob(void *w_, void* user_data) {
     cairo_set_font_size (w->crb, (w->app->normal_font+2)/w->scale.ascale);
     cairo_text_extents(w->crb,w->label , &extents);
     cairo_move_to (w->crb, (width*0.5)-(extents.width/2), height + (height * 0.15)-(extents.height*0.1));
-    cairo_show_text(w->crb, w->label);
+    cairo_text_path (w->crb, w->label);
+    cairo_fill (w->crb);
     cairo_new_path (w->crb);
 
     cairo_pop_group_to_source (w->crb);
@@ -763,7 +771,8 @@ static void draw_my_switch(void *w_, void* user_data) {
     cairo_set_font_size (wid->crb, wid->app->small_font/wid->scale.ascale);
     cairo_text_extents(wid->crb,wid->label , &extents);
     cairo_move_to (wid->crb, (wid->width*0.5)-(extents.width*0.5), wid->height - 4 -(extents.height));
-    cairo_show_text(wid->crb, wid->label);
+    cairo_text_path (wid->crb, wid->label);
+    cairo_fill (wid->crb);
     cairo_new_path (wid->crb);
 
     cairo_pop_group_to_source (wid->crb);
@@ -845,7 +854,8 @@ static void draw_my_vswitch(void *w_, void* user_data) {
     cairo_set_font_size (wid->crb, wid->app->small_font/wid->scale.ascale);
     cairo_text_extents(wid->crb,"Mix" , &extents);
     cairo_move_to (wid->crb, (wid->width*0.5)-(extents.width*0.5), 4+(extents.height));
-    cairo_show_text(wid->crb, "Mix");
+    cairo_text_path (wid->crb, "Mix");
+    cairo_fill (wid->crb);
     cairo_new_path (wid->crb);
     /** show label above the switch**/
     if (state) {
@@ -856,7 +866,8 @@ static void draw_my_vswitch(void *w_, void* user_data) {
     cairo_set_font_size (wid->crb, wid->app->small_font/wid->scale.ascale);
     cairo_text_extents(wid->crb,wid->label , &extents);
     cairo_move_to (wid->crb, (wid->width*0.5)-(extents.width*0.5), wid->height -(extents.height*0.8));
-    cairo_show_text(wid->crb, wid->label);
+    cairo_text_path (wid->crb, wid->label);
+    cairo_fill (wid->crb);
     cairo_new_path (wid->crb);
 
     cairo_pop_group_to_source (wid->crb);
@@ -1055,7 +1066,8 @@ static void draw_my_slider(void *w_, void* user_data) {
     cairo_set_font_size (wid->crb, wid->app->small_font/wid->scale.ascale);
     cairo_text_extents(wid->crb,wid->label , &extents);
     cairo_move_to (wid->crb, (w*0.5)-(extents.width/2), h*2 -(extents.height*0.4));
-    cairo_show_text(wid->crb, wid->label);
+    cairo_text_path (wid->crb, wid->label);
+    cairo_fill (wid->crb);
     cairo_new_path (wid->crb);
 
     cairo_pop_group_to_source (wid->crb);
@@ -1121,7 +1133,8 @@ void draw_my_label(void *w_, void* user_data) {
     cairo_set_source_rgba(w->crb, 0.6, 0.6, 0.6, 1);
     cairo_text_extents(w->crb,"Latenco: 0.00ms" , &extents);
     cairo_move_to (w->crb, center-extents.width/2, height-(extents.height*0.4) );
-    cairo_show_text(w->crb, s);
+    cairo_text_path (w->crb, s);
+    cairo_fill (w->crb);
     cairo_new_path (w->crb);
     cairo_pop_group_to_source (w->crb);
     cairo_paint (w->crb);
@@ -1225,7 +1238,8 @@ void draw_my_combobox(void *w_, void* user_data) {
     cairo_text_extents(w->crb, label, &extents_f);
     double twf = extents_f.width/2.0;
     cairo_move_to (w->crb, max(5 * w->app->hdpi,(w->scale.init_width*0.5)-twf), (w->scale.init_height - extents_f.height*0.5)  * w->app->hdpi );
-    cairo_show_text(w->crb, label);
+    cairo_text_path (w->crb, label);
+    cairo_fill (w->crb);
     widget_reset_scale(w);
 
 }
