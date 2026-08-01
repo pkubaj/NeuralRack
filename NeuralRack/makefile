@@ -183,7 +183,7 @@ endif
 	-I$(NEURALAUDIO_DEP_DIR)math_approx/include/ -I$(NEURALAUDIO_DEP_DIR) \
 	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/Dependencies/nlohmann/ \
 	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore/Dependencies/eigen \
-	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore
+	-I$(NEURALAUDIO_DEP_DIR)NeuralAmpModelerCore -I../NeuralAudio/
 	NEURALAUDIO_LIB := libneuralaudio.$(STATIC_LIB_EXT)
 
 	ENGINE_DIR := ./engine/

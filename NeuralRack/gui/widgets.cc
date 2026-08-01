@@ -620,8 +620,8 @@ static void draw_my_knob(void *w_, void* user_data) {
         /** show value on the kob**/
         if ((w->state || ui->setVerbose) && (strcmp(w->label, "") != 0)) {
             use_text_color_scheme(w, get_color_state(w));
-            cairo_select_font_face (w->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                                       CAIRO_FONT_WEIGHT_BOLD);
+            surface_set_font_from_ttf(w->crb, LDVAR_FONT(RobotoCondensedBold_ttf),
+                                              LDLEN_FONT(RobotoCondensedBold_ttf));
             cairo_set_font_size (w->crb, (w->app->normal_font-1)/w->scale.ascale);
             char s[17];
             char sa[17];
@@ -651,8 +651,8 @@ static void draw_my_knob(void *w_, void* user_data) {
 
     /** show label below the knob**/
     use_fg_color_scheme(w, get_color_state(w));
-    cairo_select_font_face (w->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                               CAIRO_FONT_WEIGHT_NORMAL);
+    surface_set_font_from_ttf(w->crb, LDVAR_FONT(RobotoCondensedBold_ttf),
+                                      LDLEN_FONT(RobotoCondensedBold_ttf));
     cairo_set_font_size (w->crb, (w->app->normal_font+2)/w->scale.ascale);
     cairo_text_extents(w->crb,w->label , &extents);
     cairo_move_to (w->crb, (width*0.5)-(extents.width/2), height + (height * 0.15)-(extents.height*0.1));
@@ -765,8 +765,8 @@ static void draw_my_switch(void *w_, void* user_data) {
 
     /** show label below the knob**/
     cairo_text_extents_t extents;
-    cairo_select_font_face (wid->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                               CAIRO_FONT_WEIGHT_BOLD);
+    surface_set_font_from_ttf(wid->crb, LDVAR_FONT(RobotoCondensedBold_ttf),
+                                        LDLEN_FONT(RobotoCondensedBold_ttf));
     cairo_set_source_rgba(wid->crb, 0.6, 0.6, 0.6, 1);
     cairo_set_font_size (wid->crb, wid->app->small_font/wid->scale.ascale);
     cairo_text_extents(wid->crb,wid->label , &extents);
@@ -836,8 +836,8 @@ static void draw_my_vswitch(void *w_, void* user_data) {
 
     /** show label below the switch**/
     cairo_text_extents_t extents;
-    cairo_select_font_face (wid->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                               CAIRO_FONT_WEIGHT_BOLD);
+    surface_set_font_from_ttf(wid->crb, LDVAR_FONT(RobotoCondensedBold_ttf),
+                                        LDLEN_FONT(RobotoCondensedBold_ttf));
     if (!state) {
         widget_hide(ui->widget[28]);
         widget_hide(ui->widget[29]);
@@ -1060,8 +1060,8 @@ static void draw_my_slider(void *w_, void* user_data) {
 
     /** show label below the knob**/
     cairo_text_extents_t extents;
-    cairo_select_font_face (wid->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                               CAIRO_FONT_WEIGHT_BOLD);
+    surface_set_font_from_ttf(wid->crb, LDVAR_FONT(RobotoCondensedBold_ttf),
+                                        LDLEN_FONT(RobotoCondensedBold_ttf));
     cairo_set_source_rgba(wid->crb, 0.6, 0.6, 0.6, 1);
     cairo_set_font_size (wid->crb, wid->app->small_font/wid->scale.ascale);
     cairo_text_extents(wid->crb,wid->label , &extents);
@@ -1121,8 +1121,8 @@ void draw_my_label(void *w_, void* user_data) {
     cairo_text_extents_t extents;
     char s[64];
     float value = adj_get_value(w->adj);
-    cairo_select_font_face (w->crb, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                               CAIRO_FONT_WEIGHT_BOLD);
+    surface_set_font_from_ttf(w->crb, LDVAR_FONT(RobotoCondensedBold_ttf),
+                                      LDLEN_FONT(RobotoCondensedBold_ttf));
     if (w->data == 22) {
         snprintf(s, 63,"Latency: %.2fms",  value);
         cairo_set_font_size (w->crb, w->app->small_font/w->scale.ascale);
