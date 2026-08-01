@@ -38,6 +38,7 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
+          suffix: -lv2
           extraargs: lv2
           pawpaw: true
 
@@ -55,7 +56,7 @@ jobs:
       - uses: ./.github/actions
         with:
           target: ${{ matrix.target }}
-          postfix: -v3
+          postfix: -v3-lv2
           extraargs: lv2
           lto: false
           pawpaw: true
@@ -93,7 +94,7 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
-          postfix: -clap
+          suffix: -clap
           extraargs: clap
           lto: false
           pawpaw: true
@@ -112,7 +113,7 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
-          postfix: -vst2
+          suffix: -vst2
           extraargs: vst2
           lto: false
           pawpaw: true
@@ -131,7 +132,7 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
-          postfix: -vst3
+          suffix: -vst3
           extraargs: vst3
           lto: false
           pawpaw: true
@@ -150,7 +151,7 @@ jobs:
       - uses: ./.github/actions
         with:
           target: ${{ matrix.target }}
-          postfix: -v3
+          postfix: -v3-lv2
           extraargs: lv2
           pawpaw: true
 
