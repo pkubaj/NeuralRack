@@ -217,10 +217,11 @@ static bool wrap_state_save(const clap_plugin_t *plugin, const clap_ostream_t *s
 
 static bool wrap_state_load(const clap_plugin_t *plugin, const clap_istream_t *stream) {
     wrap_plugin_t *plug = (wrap_plugin_t *)plugin->plugin_data;
-    char _state[2048];
+    char _state[2048] = {0};
     char *curr = _state;
     int thisread = stream->read(stream, curr, 2048);
     if (thisread < 0) return false;
+    _state[thisread] = '\0';
     plug->state = _state;
     // actually applied in wrap_activate(), once the engine has been
     // initialized (the sample rate must already be known at that
