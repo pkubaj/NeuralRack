@@ -109,7 +109,7 @@ static PluginDescriptor buildDescriptor() {
     static const char *features[] = { CLAP_PLUGIN_FEATURE_AUDIO_EFFECT , CLAP_PLUGIN_FEATURE_DISTORTION, NULL};
     d.clapFeature      = features;
 #endif
-    d.version          = "0.4.0";
+    d.version          = "0.4.1";
 
     // NeuralRack is a mono-in/stereo-out amp+cab simulator.
     d.numInputChannels  = 1;

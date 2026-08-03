@@ -116,7 +116,7 @@ nrack:eqpos
    lv2:extensionData work:interface ,
                     state:interface ;
    lv2:minorVersion 4 ;
-   lv2:microVersion 0 ;
+   lv2:microVersion 1 ;
 
 guiext:ui <urn:brummer:neuralrack_ui> ;
 
