@@ -35,6 +35,7 @@ struct wrap_plugin_t {
     int variantIndex;
     std::string state;
     bool guiIsCreated;
+    bool isActive;
 };
 
 static bool isHiddenInVariant(const PluginVariantInfo& v, int idx) {
@@ -219,10 +220,11 @@ static bool wrap_state_load(const clap_plugin_t *plugin, const clap_istream_t *s
     wrap_plugin_t *plug = (wrap_plugin_t *)plugin->plugin_data;
     char _state[2048] = {0};
     char *curr = _state;
-    int thisread = stream->read(stream, curr, 2048);
+    int thisread = stream->read(stream, curr, 2047);
     if (thisread < 0) return false;
     _state[thisread] = '\0';
     plug->state = _state;
+    if (plug->isActive) plug->r->readState(plug->state);
     // actually applied in wrap_activate(), once the engine has been
     // initialized (the sample rate must already be known at that
     // point).
@@ -427,6 +429,7 @@ static bool wrap_activate(const struct clap_plugin *plugin,
                              uint32_t                  max_frames_count) {
     wrap_plugin_t *plug = (wrap_plugin_t *)plugin->plugin_data;
     plug->r->initEngine((uint32_t)sample_rate, 25, 1);
+    plug->isActive = true;
     plug->r->selectVariant(plug->variantIndex);
     if (!plug->state.empty()) plug->r->readState(plug->state);
     return true;
@@ -481,6 +484,7 @@ static const clap_plugin_t *wrap_create(const clap_host_t *host, int variantInde
     plug->r = createPluginInstance(variantIndex);
     plug->variantIndex = variantIndex;
     plug->guiIsCreated = false;
+    plug->isActive = false;
     plug->plugin.desc = &gClapDescriptors[variantIndex];
     plug->plugin.plugin_data = plug;
     plug->plugin.init = wrap_init;

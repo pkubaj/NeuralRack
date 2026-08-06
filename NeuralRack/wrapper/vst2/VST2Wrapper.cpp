@@ -50,9 +50,9 @@ struct wrap_plugin_t {
     bool guiIsCreated;
 };
 
-// ---------------------------------------------------------------------------
-// helper
-// ---------------------------------------------------------------------------
+/****************************************************************
+ ** helper
+ */
 
 static double normalisedToPlain(const Parameter& p, double normalised) {
     return p.min + normalised * (p.max - p.min);
